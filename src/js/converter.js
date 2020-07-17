@@ -41,6 +41,7 @@ export default function(rawXML) {
                         parents: getParents(elem),
                         fields: {},
                         hasChildTable: false,
+                        id: `${className}-${elem.attributes.name.value}${li}`
                     }
                     let valid = true, fields = {};
                     for(let fieldIndex = 0; fieldIndex < elem.children.length; fieldIndex++) {
@@ -56,7 +57,7 @@ export default function(rawXML) {
                         const text = fields[fieldname];
                         switch(fieldname) {
                             case "flags": 
-                                object.fields["flags"] = text.split('|')
+                                object.fields["flags"] = text.length > 0 ? text.split('|') : []
                                 break;
                             case "type":
                                 if(text === "database") return valid = false;

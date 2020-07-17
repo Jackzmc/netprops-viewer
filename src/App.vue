@@ -10,13 +10,16 @@
               paginated
               per-page="20"
               narrowed
+              detailed
+              detail-key="id"
+              custom-row-key="id"
             >
               <template slot-scope="props">
                 <b-table-column field="property" label="Name" searchable sortable>
                   <strong v-if="props.row.hasChildTable">*</strong>
                     {{ props.row.property }}
                 </b-table-column>
-                <b-table-column label="Class" v-if="selectedClass.key === 'all'">
+                <b-table-column label="Class" v-if="allSelected">
                     {{ props.row.class }}
                 </b-table-column>
                 <b-table-column label="Parent" searchable>
@@ -37,6 +40,31 @@
                       <p v-else>No properties were found for this class.</p>
                     </div>
                 </section>
+              </template>
+              <template slot="detail" slot-scope="props">
+                  <nav class="breadcrumb is-small" aria-label="breadcrumbs">
+                  <ul>
+                    <li v-for="parent in props.row.parents" :key="parent">
+                      <a href="#">{{parent}}</a>
+                    </li>
+                    <li class="is-active"><a href="#" aria-current="page">{{props.row.property}}</a></li>
+                  </ul>
+                </nav>
+                <hr>
+                <table>
+                  <tr>
+                    <th>Field Name</th>
+                    <th>Field Value</th>
+                  </tr>
+                  <tr v-for="(field,key) in props.row.fields" :key="key">
+                    <td>{{key}}</td>
+                    <td>{{field}}</tD>
+                  </tr>
+                  <tr v-if="allSelected">
+                    <td>Class</td>
+                    <td>{{props.row.class}}</td>
+                  </tr>
+                </table>
               </template>
             </b-table>
           </div>
@@ -139,6 +167,9 @@ export default {
   computed: {
     classListHeight() {
       return this.selectedClass.key ? {height: '20em'} : {height: `${this.windowHeight-40}px` } 
+    },
+    allSelected() {
+      return this.selectedClass.key === "all";
     }
   }
 }
