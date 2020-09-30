@@ -1,3 +1,4 @@
+let publicPath = (process.env.PUBLIC_PATH) ? process.env.PUBLIC_PATH : '/'
 module.exports = {
     configureWebpack: {
         module: {
@@ -8,5 +9,9 @@ module.exports = {
                 },
             ],
         },
-    }
-  }
+    },
+    devServer: {
+        disableHostCheck: true
+    },
+    publicPath
+}

@@ -17,19 +17,19 @@
               <template slot-scope="props">
                 <b-table-column field="property" label="Name" searchable sortable>
                   <strong v-if="props.row.hasChildTable">*</strong>
-                    {{ props.row.property }}
+                  {{ props.row.property.trim() }}
                 </b-table-column>
-                <b-table-column label="Class" v-if="allSelected">
-                    {{ props.row.class }}
+                <b-table-column label="Class" :visible="allSelected">
+                  {{ props.row.class }}
                 </b-table-column>
                 <b-table-column label="Parent" searchable>
-                    {{ props.row.parents.length > 0 ? props.row.parents[0] : 'No parents' }}
+                    {{ props.row.parents.length > 0 ? props.row.parents[0].trim() : 'No parents' }}
                 </b-table-column>
                 <b-table-column field="fields.type" label="Type">
-                    <span :class="formatTypeClass(props.row.fields.type)">{{props.row.fields.type}}</span>
+                  <span :class="formatTypeClass(props.row.fields.type)">{{props.row.fields.type}}</span>
                 </b-table-column>
                 <b-table-column label="Flags">
-                    {{ props.row.fields.flags.join(", ") }}
+                  {{ props.row.fields.flags.join(", ") }}
                 </b-table-column>
               </template>
               <template slot="empty">
@@ -94,7 +94,7 @@
 
 <script>
 import Converter from './js/converter';
-import netprops from './assets/l4d2.netprops.xml'
+let xml; //xml DATA
 export default {
   name: 'App',
   data() {

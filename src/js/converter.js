@@ -37,7 +37,7 @@ export default function(rawXML) {
                 const elem = allElements[li];
                 if(elem.tagName === "property") {
                     let object = {
-                        property: elem.attributes.name.value,
+                        property: elem.attributes.name.value.trim(),
                         parents: getParents(elem),
                         fields: {},
                         hasChildTable: false,
