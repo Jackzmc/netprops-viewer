@@ -1,24 +1,9 @@
 # netpropsviewer
 
-## Project setup
-```
-yarn install
-```
+An easy way to view the netprops from any game that sourcemod can dump a netprops.xml file for.
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+Three games are already added: L4D2, CSGO, TF2. In the future, custom file uploading maybe supported.
 
-### Compiles and minifies for production
-```
-yarn build
-```
+Current demo/live site is: https://jackz.me/netprops, this should have up to date l4d2 stats, possibly csgo.
 
-### Lints and fixes files
-```
-yarn lint
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

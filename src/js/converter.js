@@ -1,11 +1,20 @@
 const COLORS = ['red', 'green', 'blue', 'orange', 'purple']; //eslint-disable-line
 
+const DATE_COMMENT_REGEX = new RegExp(/(<!--).+(\d{4}\/\d{2}\/\d{2})/)
+
+//This converts a raw netprops.xml input to a valid JS object that can be used for display purposes.
 export default function(rawXML) {
     return new Promise((resolve,reject) => {
         //Get rid of the beginning part of netprops
         let lines = rawXML.split(/\r?\n/);
+        let classDetails = {_meta:{}}
 
+        
         lines.some((line, index) => {
+            const dateTimestampMatch = line.match(DATE_COMMENT_REGEX);
+            if(dateTimestampMatch && dateTimestampMatch.length == 3) {
+                classDetails._meta.timestamp = dateTimestampMatch[2]
+            }
             if(/<server/.test(line)) {
                 lines.splice(0, index)
                 return true;
@@ -22,7 +31,6 @@ export default function(rawXML) {
         const xml = new DOMParser().parseFromString(XMLString, "application/xml");
         if(xml.children[0].tagName === "parsererror") reject(new Error('XMLParseError'))
 
-        let classDetails = {}
 
         const root = xml.children[0];
 
