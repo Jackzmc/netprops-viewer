@@ -17,10 +17,10 @@
               <template slot-scope="props">
                 <b-table-column field="property" label="Name" searchable sortable>
                   <strong v-if="props.row.hasChildTable">*</strong>
-                  {{ props.row.property.trim() }}
+                  <span>{{ props.row.property.trim() }}</span>
                 </b-table-column>
                 <b-table-column label="Class" :visible="allSelected">
-                  {{ props.row.class }}
+                  <span>{{ props.row.class }}</span>
                 </b-table-column>
                 <b-table-column label="Parent" searchable>
                     {{ props.row.parents.length > 0 ? props.row.parents[0].trim() : 'No parents' }}
@@ -107,7 +107,7 @@ export default {
     }
   },
   watch:{
-    $route() {
+    '$route.path': function() {
       this.loadXML();
     }
   },
@@ -115,10 +115,11 @@ export default {
     window.addEventListener('resize', () => {
       this.windowHeight = window.innerHeight
     })
-    this.loadXML();
+    const hashClass = window.location.hash.length > 2 ? window.location.hash.substring(1) : null
+    this.loadXML(hashClass);
   },
   methods: {
-    async loadXML() {
+    async loadXML(hashClass) {
       this.loading = true;
       console.info(`Loading ${this.$route.params.game}.netprops.xml...`)
       try {
@@ -128,6 +129,8 @@ export default {
         this.meta = xml._meta
         delete xml._meta;
         this.classes = xml;
+        if(hashClass)
+          this.selectClass(hashClass)
       }catch(err) {
         console.error(`Failed to properly load and parse netprops XML. `, err)
         this.$buefy.dialog.alert({
@@ -139,22 +142,33 @@ export default {
       this.loading = false;
     },
     selectClass(key) {
-      if(this.classes) {
+      if(this.classes && this.classes[key]) {
         this.selectedClass.key = key;
         this.loading = true;
         if(key === "all") {
           for(const classkey in this.classes) {
+            //todo: improve
             for(let i = 0; i < this.classes[classkey].length; i++) {
-              this.classes[classkey][i].class = classkey;
-              this.selectedClass.properties.push(this.classes[classkey][i]);
+              if(!this.classes[classkey][i].class) {
+                this.classes[classkey][i].class = classkey;
+                this.selectedClass.properties.push(this.classes[classkey][i]);
+              }
             }
           }
+          window.location.hash = `#all`
         } else {
           for(let i = 0; i < this.classes[key].length; i++) {
             this.selectedClass.properties.push(this.classes[key][i]);
           }
+          window.location.hash = `#${key}`
         }
         this.loading = false;
+        
+      }else {
+        console.error('Unknown class:', key);
+        this.selectedClass.key = null;
+        this.selectedClass.properties = [];
+        
       }
     },
     formatPropItem(prop) {
