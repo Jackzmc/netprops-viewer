@@ -33,9 +33,8 @@ export default function(rawXML) {
 
         console.time('parse')
         const root = xml.children[0];
-        const properties = []
         for(let i = 0 ; i < root.children.length; i++) {
-            properties.length = 0
+            const properties = []
             const classElement = root.children[i];
             //console.log(classElement)
             const className = classElement.attributes.name.value;
@@ -45,11 +44,11 @@ export default function(rawXML) {
                 const elem = allElements[li];
                 if(elem.tagName === "property") {
                     let object = {
-                        property: elem.attributes.name.value.trim(),
+                        name: elem.attributes.name.value.trim(),
                         parents: getParents(elem),
                         fields: {},
                         hasChildTable: false,
-                        id: `${className}-${elem.attributes.name.value}${li}`
+                        id: `${className}.${elem.attributes.name.value}#${li}`
                     }
                     let valid = true, fields = {};
                     for(let fieldIndex = 0; fieldIndex < elem.children.length; fieldIndex++) {
