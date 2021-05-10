@@ -16,8 +16,8 @@
               custom-row-key="id"
             >
               <template slot-scope="props">
-                <b-table-column field="property" label="Property Name" searchable sortable>
-                  <b>{{ props.row.property}}</b>
+                <b-table-column field="name" label="Property Name" searchable sortable>
+                  <b>{{ props.row.name}}</b>
                 </b-table-column>
                 <b-table-column label="Class" :visible="allSelected">
                   <span>{{ props.row.class }}</span>
@@ -70,11 +70,12 @@
       <div class="column is-4">
         <p class="has-text-centered">Netprop data was fetched {{meta.timestamp}}</p><br>
         <div class="box classview" >
+          <p class="subtitle is-5" style="margin-bottom: 1em">Select a class</p>
           <b-input type="text" placeholder="Search classnames..." v-model="search" autofocus />
           <b-menu>
-            <b-menu-list label="Classes">
+            <b-menu-list>
               <b-menu-item label="[ALL CLASSES]" @click="selectClass('all')" />
-              <b-menu-item v-for="(key) in visibleClasses" :key="key" :label="key" @click="selectClass(key)" tabindex="0"/>
+              <b-menu-item v-for="(key) in visibleClasses" :key="key" :label="key" @click="selectClass(key)" tabindex="0" />
             </b-menu-list>
           </b-menu>
         </div>
@@ -150,6 +151,7 @@ export default {
         this.selectedClass.key = key;
         this.loading = true;
         if(key === "all") {
+          this.selectedClass.properties = []
           for(const classkey in this.classes) {
             //todo: improve
             for(let i = 0; i < this.classes[classkey].length; i++) {
@@ -161,9 +163,7 @@ export default {
           }
           window.location.hash = `#all`
         } else {
-          for(let i = 0; i < this.classes[key].length; i++) {
-            this.selectedClass.properties.push(this.classes[key][i]);
-          }
+          this.selectedClass.properties = this.classes[key]
           window.location.hash = `#${key}`
         }
         this.loading = false;
@@ -172,12 +172,8 @@ export default {
         console.error('Unknown class:', key);
         this.selectedClass.key = null;
         this.selectedClass.properties = [];
-        
+        window.location.hash = ''
       }
-    },
-    formatPropItem(prop) {
-      if(prop.hasChildTable) return `* ${prop.property}`
-      return prop.property;
     },
     formatTypeClass(type) {
       if(type.includes("float")) {
@@ -191,22 +187,17 @@ export default {
       }
     },
     checkRowClass(row) {
-      if(row.hasChildTable) return 'has-background-dark has-text-light'
-      return ''
+      if(row.hasChildTable) return row.hasChildTable ? 'has-background-dark has-text-light' : ''
     }
   },
   computed: {
     allSelected() {
       return this.selectedClass.key === "all";
     },
-    propText() {
-      return this.selectedClass.key ? `PROPERTIES for ${this.selectedClass.key}` : 'Properties'
-    },
     visibleClasses() {
       if(!this.search) return this.classes ? Object.keys(this.classes) : []
       const result = this.fuse.search(this.search)
-      console.log(result)
-      return result.map(result => result.item).slice(0,20)
+      return result.map(result => result.item)
     },
   }
 }
