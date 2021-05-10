@@ -46,7 +46,7 @@ export default function(rawXML) {
                 if(elem.tagName === "property") {
                     let object = {
                         property: elem.attributes.name.value.trim(),
-                        parents: getParents(elem).trim(),
+                        parents: getParents(elem),
                         fields: {},
                         hasChildTable: false,
                         id: `${className}-${elem.attributes.name.value}${li}`
@@ -114,7 +114,7 @@ function getParents(element, array = []) {
     }else{
         //Add property to array, then recursively call getParents to fetch next parent
         if(element.parentElement.tagName === "sendtable" && element.parentElement.attributes.name) {
-            array.push(element.parentElement.attributes.name.value)
+            array.push(element.parentElement.attributes.name.value.trim())
         }
         return getParents(element.parentElement, array);
     }
