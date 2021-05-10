@@ -1,4 +1,5 @@
 <template>
+<!-- todo: auto focus on search, tab on list -->
   <div class="container is-fluid">
     <b-loading :active="loading" />
     <div class="columns">
@@ -15,15 +16,14 @@
               custom-row-key="id"
             >
               <template slot-scope="props">
-                <b-table-column field="property" label="Name" searchable sortable>
-                  <strong v-if="props.row.hasChildTable">*</strong>
-                  <span>{{ props.row.property.trim() }}</span>
+                <b-table-column field="property" label="Property Name" searchable sortable>
+                  <b>{{ props.row.property}}</b>
                 </b-table-column>
                 <b-table-column label="Class" :visible="allSelected">
                   <span>{{ props.row.class }}</span>
                 </b-table-column>
-                <b-table-column label="Parent" searchable>
-                    {{ props.row.parents.length > 0 ? props.row.parents[0].trim() : 'No parents' }}
+                <b-table-column label="Parent Property" searchable>
+                    {{ props.row.parents.length > 0 ? props.row.parents[0] : 'No parents' }}
                 </b-table-column>
                 <b-table-column field="fields.type" label="Type">
                   <span :class="formatTypeClass(props.row.fields.type)">{{props.row.fields.type}}</span>
@@ -69,19 +69,12 @@
       </div>
       <div class="column is-4">
         <p class="has-text-centered">Netprop data was fetched {{meta.timestamp}}</p><br>
-        <div class="box classview" :style="classListHeight">
+        <div class="box classview" >
+          <b-input type="text" placeholder="Search classnames..." v-model="search" autofocus />
           <b-menu>
             <b-menu-list label="Classes">
               <b-menu-item label="[ALL CLASSES]" @click="selectClass('all')" />
-              <b-menu-item v-for="(properties, key) in classes" :key="key" :label="key" @click="selectClass(key)" />
-            </b-menu-list>
-          </b-menu>
-        </div>
-
-        <div class="box classview" style="height: 30em" v-if="selectedClass">
-          <b-menu>
-            <b-menu-list :label="propText">
-              <b-menu-item v-for="(prop, index) in selectedClass.properties" :key="index" :label="formatPropItem(prop)" />
+              <b-menu-item v-for="(key) in visibleClasses" :key="key" :label="key" @click="selectClass(key)" tabindex="0"/>
             </b-menu-list>
           </b-menu>
         </div>
@@ -92,16 +85,20 @@
 
 <script>
 import Converter from '../js/converter';
+import Fuse from 'fuse.js'
+
 export default {
   name: 'Netprops',
   data() {
     return {
       classes: null,
       meta: {},
+      search: null,
       selectedClass: {
         key: null,
         properties: [],
       },
+      fuse: null,
       windowHeight: window.innerHeight,
       loading: true,
     }
@@ -129,19 +126,26 @@ export default {
         this.meta = xml._meta
         delete xml._meta;
         this.classes = xml;
+        this.fuse = new Fuse(Object.keys(xml), {
+          includeScore: true,
+          distance: 40,
+          threshold: 0.5,
+          minMatchCharLength: 3,
+        })
         if(hashClass)
           this.selectClass(hashClass)
       }catch(err) {
-        console.error(`Failed to properly load and parse netprops XML. `, err)
         this.$buefy.dialog.alert({
           type: 'is-danger',
           title: 'Failed to parse netprops XML',
-          message: `Attempted to load <b>${window.location}/data/${this.$route.params.game}.netprops.xml</b>. The netprops xml may be invalid or does not exist.`
+          message: `Attempting to parse <b>${window.location}/data/${this.$route.params.game}.netprops.xml</b> resulted in an error. The netprops xml may be invalid or does not exist.`
         })
+        console.error('parse error', err)
       }
       this.loading = false;
     },
     selectClass(key) {
+      this.$emit('select', key)
       if(this.classes && this.classes[key]) {
         this.selectedClass.key = key;
         this.loading = true;
@@ -192,15 +196,18 @@ export default {
     }
   },
   computed: {
-    classListHeight() {
-      return this.selectedClass.key ? {height: '20em'} : {height: `${this.windowHeight-40}px` } 
-    },
     allSelected() {
       return this.selectedClass.key === "all";
     },
     propText() {
       return this.selectedClass.key ? `PROPERTIES for ${this.selectedClass.key}` : 'Properties'
-    }
+    },
+    visibleClasses() {
+      if(!this.search) return this.classes ? Object.keys(this.classes) : []
+      const result = this.fuse.search(this.search)
+      console.log(result)
+      return result.map(result => result.item).slice(0,20)
+    },
   }
 }
 </script>
