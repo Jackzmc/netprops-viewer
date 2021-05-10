@@ -1,5 +1,3 @@
-const COLORS = ['red', 'green', 'blue', 'orange', 'purple']; //eslint-disable-line
-
 const DATE_COMMENT_REGEX = new RegExp(/(<!--).+(\d{4}\/\d{2}\/\d{2})/)
 
 //This converts a raw netprops.xml input to a valid JS object that can be used for display purposes.
@@ -27,15 +25,17 @@ export default function(rawXML) {
         })
         
         //Wrap XML fragments into one root
+        console.time('DOMParse')
         const XMLString = `<root>${lines.join("\n")}</root>`
         const xml = new DOMParser().parseFromString(XMLString, "application/xml");
         if(xml.children[0].tagName === "parsererror") reject(new Error('XMLParseError'))
+        console.timeEnd('DOMParse')
 
-
+        console.time('parse')
         const root = xml.children[0];
-
+        const properties = []
         for(let i = 0 ; i < root.children.length; i++) {
-            const properties = [];
+            properties.length = 0
             const classElement = root.children[i];
             //console.log(classElement)
             const className = classElement.attributes.name.value;
@@ -46,7 +46,7 @@ export default function(rawXML) {
                 if(elem.tagName === "property") {
                     let object = {
                         property: elem.attributes.name.value.trim(),
-                        parents: getParents(elem),
+                        parents: getParents(elem).trim(),
                         fields: {},
                         hasChildTable: false,
                         id: `${className}-${elem.attributes.name.value}${li}`
@@ -101,6 +101,7 @@ export default function(rawXML) {
             }
             classDetails[className] =  properties;
         }
+        console.timeEnd('parse')
         resolve(classDetails)
     })
 }
