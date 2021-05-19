@@ -6,6 +6,7 @@
       <b-button tag="router-link" to="l4d2">View Left 4 Dead 2 Netprops</b-button>
       <b-button tag="router-link" to="csgo">View Counter-Strike: Global Offensive Netprops</b-button>
       <b-button tag="router-link" to="tf2">View Team Fortress 2 Netprops</b-button>
+      <b-button tag="router-link" to="custom">Open Custom URL</b-button>
     </div>
   </div>
 </template>

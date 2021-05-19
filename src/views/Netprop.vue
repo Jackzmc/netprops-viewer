@@ -68,7 +68,7 @@
           </div>
       </div>
       <div class="column is-4">
-        <p class="has-text-centered">Netprop data was fetched {{meta.timestamp}}</p><br>
+        <p class="has-text-centered">Netprop data was last updated {{meta.timestamp}}</p><br>
         <div class="box classview" >
           <p class="subtitle is-5" style="margin-bottom: 1em">Select a class</p>
           <b-input type="text" placeholder="Search classnames..." v-model="search" autofocus />
@@ -113,15 +113,36 @@ export default {
     window.addEventListener('resize', () => {
       this.windowHeight = window.innerHeight
     })
+    if(this.$route.name == 'CustomNetprops' && !this.$route.query.url) {
+      this.loading = false
+      this.promptForURL()
+      return;
+    }
     const hashClass = window.location.hash.length > 2 ? window.location.hash.substring(1) : null
     this.loadXML(hashClass);
   },
   methods: {
+    promptForURL() {
+      this.$buefy.dialog.prompt({
+        message: `Enter a URL to a netprops.xml file`,
+        inputAttrs: {
+          placeholder: 'https://example.com/netprops.xml',
+        },
+        trapFocus: true,
+        onConfirm: (value) => {
+          this.$router.replace({path: '/custom', query: { url: value}})
+          if(!this.loadXML()) {
+            this.promptForURL()
+          }
+        },
+        canCancel: false
+      })
+    },
     async loadXML(hashClass) {
       this.loading = true;
-      console.info(`Loading ${this.$route.params.game}.netprops.xml...`)
+      console.info(`Loading ${this.url}...`)
       try {
-        const response = await fetch(`data/${this.$route.params.game}.netprops.xml`)
+        const response = await fetch(this.url)
         const body = await response.text();
         const xml = await Converter(body);
         this.meta = xml._meta
@@ -135,6 +156,8 @@ export default {
         })
         if(hashClass)
           this.selectClass(hashClass)
+        this.loading = false;
+        return true
       }catch(err) {
         this.$buefy.dialog.alert({
           type: 'is-danger',
@@ -142,8 +165,9 @@ export default {
           message: `Attempting to parse <b>${window.location}/data/${this.$route.params.game}.netprops.xml</b> resulted in an error. The netprops xml may be invalid or does not exist.`
         })
         console.error('parse error', err)
+        this.loading = false;
+        return false
       }
-      this.loading = false;
     },
     selectClass(key) {
       this.$emit('select', key)
@@ -199,6 +223,9 @@ export default {
       const result = this.fuse.search(this.search)
       return result.map(result => result.item)
     },
+    url() {
+      return this.$route.query.url || `data/${this.$route.params.game}.netprops.xml`
+    }
   }
 }
 </script>
