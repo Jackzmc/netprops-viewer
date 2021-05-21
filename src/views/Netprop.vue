@@ -162,9 +162,9 @@ export default {
         this.$buefy.dialog.alert({
           type: 'is-danger',
           title: 'Failed to parse netprops XML',
-          message: `Attempting to parse <b>${window.location}/data/${this.$route.params.game}.netprops.xml</b> resulted in an error. The netprops xml may be invalid or does not exist.`
+          message: `Attempting to parse <b>${window.location}/data/${this.$route.params.game}.netprops.xml</b> resulted in an error. The netprops xml may be invalid or does not exist.<br><br>${err.message}`
         })
-        console.error('parse error', err)
+        console.error( err)
         this.loading = false;
         return false
       }

@@ -4,7 +4,8 @@ const DATE_COMMENT_REGEX = new RegExp(/(<!--).+(\d{4}\/\d{2}\/\d{2})/)
 export default function(rawXML) {
     return new Promise((resolve,reject) => {
         //Get rid of the beginning part of netprops
-        let lines = rawXML.split(/\r?\n/);
+        console.time('parse_cleanup')
+        let lines = rawXML.replace(/""/g, '"').split(/\r?\n/)
         let classDetails = {_meta:{}}
 
         
@@ -19,16 +20,13 @@ export default function(rawXML) {
             }
             return false;
         })
-        //This fixes netprop error where player_array is double quoted.. why???
-        lines = lines.map(line => {
-            return line.replace(/"player_array"/,"player_array");
-        })
+        console.timeEnd('parse_cleanup')
         
         //Wrap XML fragments into one root
         console.time('DOMParse')
         const XMLString = `<root>${lines.join("\n")}</root>`
         const xml = new DOMParser().parseFromString(XMLString, "application/xml");
-        if(xml.children[0].tagName === "parsererror") reject(new Error('XMLParseError'))
+        if(xml.children[0].tagName === "parsererror") return reject(new Error(xml.children[0].textContent))
         console.timeEnd('DOMParse')
 
         console.time('parse')
