@@ -5,7 +5,7 @@
       <router-link to="/l4d2">L4D2</router-link> |
       <router-link to="/csgo">CSGO</router-link> |
       <router-link to="/tf2">TF2</router-link> |
-      <router-link to='/custom'>Custom URL</router-link>
+      <router-link to='/custom'>Custom</router-link>
 
       <span v-if="selection" style="margin-left: 20em">
         <b>Selected class:</b> {{selection}}

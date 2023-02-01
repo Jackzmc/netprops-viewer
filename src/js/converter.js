@@ -5,7 +5,7 @@ export default function(rawXML) {
     return new Promise((resolve,reject) => {
         //Get rid of the beginning part of netprops
         console.time('parse_cleanup')
-        let lines = rawXML.replace(/""/g, '"').split(/\r?\n/)
+        let lines = rawXML.replace(/'/g,'"').replace(/""/g, '"').split(/\r?\n/)
         let classDetails = {_meta:{}}
 
         
@@ -14,7 +14,7 @@ export default function(rawXML) {
             if(dateTimestampMatch && dateTimestampMatch.length == 3) {
                 classDetails._meta.timestamp = dateTimestampMatch[2]
             }
-            if(/<server/.test(line)) {
+            if(/<serverd/.test(line)) {
                 lines.splice(0, index)
                 return true;
             }
@@ -24,8 +24,9 @@ export default function(rawXML) {
         
         //Wrap XML fragments into one root
         console.time('DOMParse')
-        const XMLString = `<root>${lines.join("\n")}</root>`
-        const xml = new DOMParser().parseFromString(XMLString, "application/xml");
+        // const XMLString = `<root>${lines.join("\n")}</root>`
+        // console.log(XMLString)
+        const xml = new DOMParser().parseFromString(lines.join("\n"), "application/xml");
         if(xml.children[0].tagName === "parsererror") return reject(new Error(xml.children[0].textContent))
         console.timeEnd('DOMParse')
 

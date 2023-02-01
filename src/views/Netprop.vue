@@ -87,6 +87,7 @@
 <script>
 import Converter from '../js/converter';
 import Fuse from 'fuse.js'
+import CustomModal from '@/components/Custom.vue'
 
 export default {
   name: 'Netprops',
@@ -102,6 +103,7 @@ export default {
       fuse: null,
       windowHeight: window.innerHeight,
       loading: true,
+      dialog:null
     }
   },
   watch:{
@@ -119,31 +121,41 @@ export default {
       return;
     }
     const hashClass = window.location.hash.length > 2 ? window.location.hash.substring(1) : null
-    this.loadXML(hashClass);
+    this.fetchXML(hashClass);
   },
   methods: {
+    onUpload(body) {
+      this.loadXML(body, null, true)
+    },
     promptForURL() {
-      this.$buefy.dialog.prompt({
-        message: `Enter a URL to a netprops.xml file`,
-        inputAttrs: {
-          placeholder: 'https://example.com/netprops.xml',
-        },
+      this.$buefy.modal.open({
+        parent: this,
+        component: CustomModal,
         trapFocus: true,
-        onConfirm: (value) => {
-          this.$router.replace({path: '/custom', query: { url: value}})
-          if(!this.loadXML()) {
-            this.promptForURL()
-          }
-        },
-        canCancel: false
+        hasModalCard: true,
+        events: {
+          'upload': this.onUpload
+        }
       })
     },
-    async loadXML(hashClass) {
+    async fetchXML(hashClass) {
       this.loading = true;
       console.info(`Loading ${this.url}...`)
       try {
         const response = await fetch(this.url)
         const body = await response.text();
+        this.loadXML(body, hashClass)
+      } catch(err) {
+        this.dialog = this.$buefy.dialog.alert({
+          type: 'is-danger',
+          title: 'Failed to fetch netprops XML',
+          message: `Attempting to fetch <b>${this.url}</b> resulted in an error: ${err}`
+        })
+        console.error( err)
+      }
+    },
+    async loadXML(body, hashClass, isCustom) {
+      try {
         const xml = await Converter(body);
         this.meta = xml._meta
         delete xml._meta;
@@ -159,40 +171,41 @@ export default {
         this.loading = false;
         return true
       }catch(err) {
-        this.$buefy.dialog.alert({
+        if(this.dialog) {
+          this.dialog.close()
+        }
+        const route = isCustom ? 'your custom netprops file': `${window.location}/data/${this.$route.params.game}.netprops.xml`
+        this.dialog = this.$buefy.dialog.alert({
           type: 'is-danger',
           title: 'Failed to parse netprops XML',
-          message: `Attempting to parse <b>${window.location}/data/${this.$route.params.game}.netprops.xml</b> resulted in an error. The netprops xml may be invalid or does not exist.<br><br>${err.message}`
+          message: `Attempting to parse <b>${route}</b> resulted in an error. The netprops xml may be invalid or does not exist.<br><br>${err}`
         })
-        console.error( err)
+        console.error( err )
         this.loading = false;
         return false
       }
     },
     selectClass(key) {
       this.$emit('select', key)
-      if(this.classes && this.classes[key]) {
-        this.selectedClass.key = key;
-        this.loading = true;
-        if(key === "all") {
-          this.selectedClass.properties = []
-          for(const classkey in this.classes) {
-            //todo: improve
-            for(let i = 0; i < this.classes[classkey].length; i++) {
-              if(!this.classes[classkey][i].class) {
-                this.classes[classkey][i].class = classkey;
-                this.selectedClass.properties.push(this.classes[classkey][i]);
-              }
+      if(key === "all") {
+        this.selectedClass.properties = []
+        for(const classkey in this.classes) {
+          //todo: improve
+          for(let i = 0; i < this.classes[classkey].length; i++) {
+            if(!this.classes[classkey][i].class) {
+              this.classes[classkey][i].class = classkey;
+              this.selectedClass.properties.push(this.classes[classkey][i]);
             }
           }
-          window.location.hash = `#all`
-        } else {
-          this.selectedClass.properties = this.classes[key]
-          window.location.hash = `#${key}`
         }
+        window.location.hash = `#all`
+      } else if(this.classes && this.classes[key]) {
+        this.selectedClass.key = key;
+        this.loading = true;
+        this.selectedClass.properties = this.classes[key]
+        window.location.hash = `#${key}`
         this.loading = false;
-        
-      }else {
+      } else {
         console.error('Unknown class:', key);
         this.selectedClass.key = null;
         this.selectedClass.properties = [];
