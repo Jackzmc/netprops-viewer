@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/" exact>Selection Home</router-link> |
       <router-link to="/l4d2">L4D2</router-link> |
       <router-link to="/csgo">CSGO</router-link> |
       <router-link to="/tf2">TF2</router-link> |

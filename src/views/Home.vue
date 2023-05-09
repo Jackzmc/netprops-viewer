@@ -11,9 +11,14 @@
     <hr />
     <h4 class="title is-4">Outdated?</h4>
     <p>
-      If any netprops are outdated, feel free to email me at <b>me@jackz.me</b>. If you want (it helps), you can update the netprops data yourself, and send that to me, or upload it to use it in the meantime
+      If any netprops are outdated, feel free to email me at <b>me@jackz.me</b>. If you want (it helps), you can update the netprops data yourself, and send that to my email or make a pull request, or upload it to use it in the meantime
     </p>
     <br />
+    <h5 class="title is-5">Source Code</h5>
+    <p>
+      <b-button tag="a" class="is-dark" href="https://github.com/jackzmc/netprops-viewer">View on Github</b-button>
+    </p>
+    <br>
     <h5 class="title is-5">Acquiring Netprops Data</h5>
     <p>This requires to have an up to date sourcemod server</p>
     <p>Run the command <code>sm_dump_netprops_xml netprops.xml</code>, this will create the <b>netprops.xml</b> file in your game's inner folder</p>
