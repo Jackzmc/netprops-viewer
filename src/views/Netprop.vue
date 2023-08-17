@@ -108,7 +108,7 @@ export default {
   },
   watch:{
     '$route.path': function() {
-      this.loadXML();
+      this.fetchXML(null);
     }
   },
   created() {
@@ -133,8 +133,10 @@ export default {
         component: CustomModal,
         trapFocus: true,
         hasModalCard: true,
+        canCancel: true,
         events: {
-          'upload': this.onUpload
+          'upload': this.onUpload,
+          'close': () => this.$router.push('/')
         }
       })
     },

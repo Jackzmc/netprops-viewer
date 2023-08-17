@@ -2,6 +2,7 @@
 <div class="modal-card" style="width: auto">
     <header class="modal-card-head">
         <p class="modal-card-title">Upload a custom Netprops File</p>
+        <b-button class="delete" aria-label="close" @click="$emit('close')"></b-button>
     </header>
     <section class="modal-card-body">
         <div class="content">
@@ -15,6 +16,7 @@
                 <li>Run the command <code>sm_dump_netprops_xml netprops.xml</code></li>
                 <li>In your game's inner folder (tf2 is 'tf', l4d2 is 'l4d2', etc) will be the <b>netprops.xml</b> file</li>
             </ul>
+            <h4>Upload</h4>
         </div>
         <div class="file is-boxed">
             <label class="file-label">
