@@ -22,7 +22,7 @@
                 <b-table-column label="Class" :visible="allSelected">
                   <span>{{ props.row.class }}</span>
                 </b-table-column>
-                <b-table-column label="Parent Property" searchable>
+                <b-table-column label="Parent Property" searchable v-if="!isDatamaps">
                     {{ props.row.parents.length > 0 ? props.row.parents[0] : 'No parents' }}
                 </b-table-column>
                 <b-table-column field="fields.type" label="Type">
@@ -31,6 +31,17 @@
                 <b-table-column label="Flags">
                   {{ props.row.fields.flags.join(", ") }}
                 </b-table-column>
+                <b-table-column field="fields.bytes" label="Bytes" v-if="isDatamaps">
+                  <span>{{props.row.fields.bytes}}</span>
+                </b-table-column>
+                <template v-else>
+                <b-table-column field="fields.bits" label="Bits">
+                  <span>{{props.row.fields.bits}}</span>
+                </b-table-column>
+                <b-table-column field="fields.offset" label="Offset">
+                  <span>{{props.row.fields.offset}}</span>
+                </b-table-column>
+                </template>
               </template>
               <template slot="empty">
                 <section class="section">
@@ -68,7 +79,7 @@
           </div>
       </div>
       <div class="column is-4">
-        <p class="has-text-centered">Netprop data was last updated {{meta.timestamp}}</p><br>
+        <p class="has-text-centered">Data was last updated {{meta.timestamp}}</p><br>
         <div class="box classview" >
           <p class="subtitle is-5" style="margin-bottom: 1em">Select a class</p>
           <b-input type="text" placeholder="Search classnames..." v-model="search" autofocus />
@@ -93,6 +104,7 @@ export default {
   name: 'Netprops',
   data() {
     return {
+      isDatamaps: false,
       classes: null,
       meta: {},
       search: null,
@@ -103,7 +115,8 @@ export default {
       fuse: null,
       windowHeight: window.innerHeight,
       loading: true,
-      dialog:null
+      dialog:null,
+      prevUrl: null
     }
   },
   watch:{
@@ -144,9 +157,19 @@ export default {
       this.loading = true;
       console.info(`Loading ${this.url}...`)
       try {
+        if(this.url != this.prevUrl) {
+          // Wipe saved data, in case they switchign between netprops / datamaps
+          this.classes = null
+          this.meta = {}
+          this.selectedClass = {
+            key: null,
+            properties: [],
+          }
+        }
         const response = await fetch(this.url)
         const body = await response.text();
-        this.loadXML(body, hashClass)
+        await this.loadXML(body, hashClass)
+        this.prevUrl = this.url
       } catch(err) {
         this.dialog = this.$buefy.dialog.alert({
           type: 'is-danger',
@@ -158,8 +181,9 @@ export default {
     },
     async loadXML(body, hashClass, isCustom) {
       try {
-        const xml = await Converter(body);
+        const [xml, isDatamaps] = await Converter(body);
         this.meta = xml._meta
+        this.isDatamaps = isDatamaps
         delete xml._meta;
         this.classes = xml;
         this.fuse = new Fuse(Object.keys(xml), {
@@ -172,7 +196,7 @@ export default {
           this.selectClass(hashClass)
         this.loading = false;
         return true
-      }catch(err) {
+      } catch(err) {
         if(this.dialog) {
           this.dialog.close()
         }
@@ -215,6 +239,7 @@ export default {
       }
     },
     formatTypeClass(type) {
+      if(!type) return ""
       if(type.includes("float")) {
         return 'has-text-info'
       }else if(type.includes("vector")) {
@@ -239,7 +264,14 @@ export default {
       return result.map(result => result.item)
     },
     url() {
-      return this.$route.query.url || `data/${this.$route.params.game}.netprops.xml`
+      if(this.$route.query.url) return this.$route.query.url
+      let key = 'netprops'
+      let game = this.$route.params.game
+      if(this.$route.params.game.endsWith("-data")) {
+        game = game.slice(0,-5)
+        key = 'datamaps'
+      }
+      return `data/${game}.${key}.xml`
     }
   }
 }

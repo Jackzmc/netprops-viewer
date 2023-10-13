@@ -1,7 +1,8 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/l4d2">L4D2</router-link> |
+      <router-link to="/l4d2">L4D2 (Netprops)</router-link> |
+      <router-link to="/l4d2-data">L4D2 (Datamaps)</router-link> |
       <router-link to="/csgo">CSGO</router-link> |
       <router-link to="/tf2">TF2</router-link> |
       <router-link to='/custom'>Custom</router-link>
