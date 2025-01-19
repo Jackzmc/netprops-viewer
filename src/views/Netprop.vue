@@ -154,20 +154,22 @@ export default {
     window.addEventListener('resize', () => {
       this.windowHeight = window.innerHeight
     })
-    if(this.$route.params.game && this.$route.params.game.includes("-")) {
+    if(this.$route.name == 'CustomNetprops' ) {
+      this.loading = false
+      this.promptForURL()
+      return
+    }
+    
+    if(this.$route.params.game.includes("-")) {
       const [game, type] = this.$route.params.game.split("-")
       console.debug(`legacy url, switching to game=${game} type=${type}`)
       this.$router.replace({ params: { game, type }})
       return
     }
-    if(this.$route.params.game && !this.$route.params.type) {
+    if(!this.$route.params.type) {
       this.$router.replace({ params: { type: "netprops" }})
     }
-    if(this.$route.name == 'CustomNetprops' && !this.$route.query.url) {
-      this.loading = false
-      this.promptForURL()
-      return;
-    }
+    
     const hashClass = window.location.hash.length > 2 ? window.location.hash.substring(1) : null
     this.fetchXML(hashClass);
   },

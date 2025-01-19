@@ -5,6 +5,7 @@
         <b-button class="delete" aria-label="close" @click="$emit('close')"></b-button>
     </header>
     <section class="modal-card-body">
+        <b-loading :active="uploading" />
         <div class="content">
             <p>
                 If you want to use either an updated / missing netprops or datamaps file, you can upload them here.
@@ -19,7 +20,7 @@
             </ul>
             <h4>Upload</h4>
         </div>
-        <div class="file is-boxed">
+        <div class="file is-boxed" v-if="!uploading">
             <label class="file-label">
                 <input class="file-input" type="file" name="resume" accept=".xml" @change="onUpload">
                 <span class="file-cta">
@@ -44,11 +45,12 @@
 export default {
     data() {
         return {
-            test: null
+            uploading: false
         }
     },
     methods: {
         onUpload(e) {
+            this.uploading = true
             const file = e.target.files[0]
             const reader = new FileReader();
             reader.addEventListener("load", e => {
