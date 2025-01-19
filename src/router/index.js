@@ -18,7 +18,7 @@ const routes = [
     component: Netprop,
   },
   {
-    path: '/:game',
+    path: '/:game/:type?',
     name: 'Netprops',
     component: Netprop
   }

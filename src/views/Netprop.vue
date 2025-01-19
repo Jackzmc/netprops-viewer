@@ -2,7 +2,30 @@
 <!-- todo: auto focus on search, tab on list -->
   <div class="container is-fluid">
     <b-loading :active="loading" />
-    <div class="columns">
+    <div class="columns" v-if="loading">
+      <div class="column">
+        <div class="content">
+          <section class="section">
+            <div class="content has-text-grey has-text-centered">
+              <br>
+              <h3>Loading & Parsing</h3>
+              <p v-if="$route.params.game">Parsing {{ url }}</p>
+              <p v-else>Parsing custom file</p>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="column is-4">
+        <p class="has-text-centered" v-if=" url ">{{ url }}</p>
+        <p class="has-text-centered" v-else>custom file</p>
+        <p class="has-text-centered">&nbsp;</p><br>
+        <div class="box classview" >
+          <p class="subtitle is-5" style="margin-bottom: 1em">Select a class</p>
+          <b-input readonly type="text" placeholder="Search classnames..." v-model="search" autofocus />
+        </div>
+      </div>
+    </div>
+    <div class="columns" v-else>
       <div class="column">
         <div class="content">
             <b-table 
@@ -47,6 +70,7 @@
                 <section class="section">
                     <div class="content has-text-grey has-text-centered">
                       <br>
+                      <h3 v-if=" selectedClass.key == null ">No class selected</h3>
                       <p v-if="selectedClass.key == null">Select a class on the right to view its properties.</p>
                       <p v-else>No properties were found for this class.</p>
                     </div>
@@ -79,13 +103,15 @@
           </div>
       </div>
       <div class="column is-4">
-        <p class="has-text-centered">Data was last updated {{meta.timestamp}}</p><br>
+        <p class="has-text-centered" v-if="url">{{ url }}</p>
+        <p class="has-text-centered" v-else>custom file</p>
+        <p class="has-text-centered">Data was last updated <span v-if="meta.timestamp">{{meta.timestamp}}</span><em v-else>never</em></p><br>
         <div class="box classview" >
           <p class="subtitle is-5" style="margin-bottom: 1em">Select a class</p>
           <b-input type="text" placeholder="Search classnames..." v-model="search" autofocus />
           <b-menu>
             <b-menu-list>
-              <b-menu-item label="[ALL CLASSES]" @click="selectClass('all')" />
+              <b-menu-item label="[VIEW ALL FROM ALL CLASSES]" @click="selectClass('all')" />
               <b-menu-item v-for="(key) in visibleClasses" :key="key" :label="key" @click="selectClass(key)" tabindex="0" />
             </b-menu-list>
           </b-menu>
@@ -128,6 +154,15 @@ export default {
     window.addEventListener('resize', () => {
       this.windowHeight = window.innerHeight
     })
+    if(this.$route.params.game && this.$route.params.game.includes("-")) {
+      const [game, type] = this.$route.params.game.split("-")
+      console.debug(`legacy url, switching to game=${game} type=${type}`)
+      this.$router.replace({ params: { game, type }})
+      return
+    }
+    if(this.$route.params.game && !this.$route.params.type) {
+      this.$router.replace({ params: { type: "netprops" }})
+    }
     if(this.$route.name == 'CustomNetprops' && !this.$route.query.url) {
       this.loading = false
       this.promptForURL()
@@ -200,7 +235,7 @@ export default {
         if(this.dialog) {
           this.dialog.close()
         }
-        const route = isCustom ? 'your custom netprops file': `${window.location}/data/${this.$route.params.game}.netprops.xml`
+        const route = isCustom ? 'your custom netprops file': `/data/${this.$route.params.game}.${this.$route.params.type}.xml`
         this.dialog = this.$buefy.dialog.alert({
           type: 'is-danger',
           title: 'Failed to parse netprops XML',
@@ -264,14 +299,10 @@ export default {
       return result.map(result => result.item)
     },
     url() {
+      if(!this.$route.params.game) return null
       if(this.$route.query.url) return this.$route.query.url
-      let key = 'netprops'
-      let game = this.$route.params.game
-      if(this.$route.params.game.endsWith("-data")) {
-        game = game.slice(0,-5)
-        key = 'datamaps'
-      }
-      return `data/${game}.${key}.xml`
+      const game = this.$route.params.game.replace(/-/, '/')
+      return `/data/${game}.${this.$route.params.type ?? 'netprops'}.xml`
     }
   }
 }
@@ -280,5 +311,6 @@ export default {
 <style scoped>
 .classview {
   overflow: auto;
+  border-radius: 0;
 }
 </style>

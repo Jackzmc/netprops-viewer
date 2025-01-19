@@ -1,11 +1,12 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/l4d2">L4D2 (Netprops)</router-link> |
-      <router-link to="/l4d2-data">L4D2 (Datamaps)</router-link> |
-      <router-link to="/csgo">CSGO</router-link> |
-      <router-link to="/tf2">TF2</router-link> |
-      <router-link to='/custom'>Custom</router-link>
+      <router-link exact to="/" >Home</router-link> |
+      <router-link to="/l4d2/netprops">L4D2: Netprops</router-link> |
+      <router-link to="/l4d2/datamaps">L4D2: Datamaps</router-link> |
+      <router-link to="/csgo/netprops">CSGO: Netprops</router-link> |
+      <router-link to="/tf2/netprops">TF2: Netprops</router-link> |
+      <router-link to='/custom'>Upload Custom</router-link>
 
       <span v-if="selection" style="margin-left: 20em">
         <b>Selected class:</b> {{selection}}
@@ -21,7 +22,12 @@ export default {
     return {
       selection: null,
     }
-  }
+  },
+  watch:{
+    '$route.path': function() {
+      this.selection = null
+    }
+  },
 }
 </script>
 
