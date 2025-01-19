@@ -147,6 +147,11 @@ export default {
   },
   watch:{
     '$route.path': function() {
+      if(this.$route.name == 'CustomNetprops' ) {
+        this.loading = false
+        this.promptForURL()
+        return
+      }
       this.fetchXML(null);
     }
   },
@@ -159,7 +164,7 @@ export default {
       this.promptForURL()
       return
     }
-    
+
     if(this.$route.params.game.includes("-")) {
       const [game, type] = this.$route.params.game.split("-")
       console.debug(`legacy url, switching to game=${game} type=${type}`)
@@ -304,7 +309,7 @@ export default {
       if(!this.$route.params.game) return null
       if(this.$route.query.url) return this.$route.query.url
       const game = this.$route.params.game.replace(/-/, '/')
-      return `/data/${game}.${this.$route.params.type ?? 'netprops'}.xml`
+      return `../data/${game}.${this.$route.params.type ?? 'netprops'}.xml`
     }
   }
 }
