@@ -208,8 +208,10 @@ export default {
             properties: [],
           }
         }
+        console.time("fetch_url")
         const response = await fetch(this.url)
         const body = await response.text();
+        console.timeEnd("fetch_url")
         await this.loadXML(body, hashClass)
         this.prevUrl = this.url
       } catch(err) {

@@ -9,10 +9,14 @@ export default function(rawXML) {
 
     
     lines.some((line, index) => {
-        const dateTimestampMatch = line.match(DATE_COMMENT_REGEX);
-        if(dateTimestampMatch && dateTimestampMatch.length == 3) {
-            classDetails._meta.timestamp = dateTimestampMatch[2]
+        // Attempt to find the date from "<!-- Dump of all network properties for "GAME" as at DATE -->"
+        if(!classDetails._meta.timestamp ) {
+            const dateTimestampMatch = line.match(DATE_COMMENT_REGEX);
+            if(dateTimestampMatch && dateTimestampMatch.length == 3) {
+                classDetails._meta.timestamp = dateTimestampMatch[2]
+            }
         }
+        // Sometimes there is some extra prefix, slice that off
         if(/<serverd/.test(line)) {
             lines.splice(0, index)
             return true;
@@ -24,8 +28,6 @@ export default function(rawXML) {
     
     //Wrap XML fragments into one root
     console.time('DOMParse')
-    // const XMLString = `<root>${lines.join("\n")}</root>`
-    // console.log(XMLString)
     const xml = new DOMParser().parseFromString(lines.join("\n"), "application/xml");
     if(xml.children[0].tagName === "parsererror") throw new Error(xml.children[0].textContent)
     console.timeEnd('DOMParse')
@@ -46,6 +48,7 @@ export default function(rawXML) {
         const allElements = classElement.getElementsByTagName('*');
         for(let li = 0; li < allElements.length; li++) {
             const elem = allElements[li];
+            // Check if XML element is the <datamap or <property
             if(elem.tagName === propTagName) {
                 let object = {
                     name: elem.attributes.name.value.trim(),
@@ -63,11 +66,12 @@ export default function(rawXML) {
                     const propertyField = elem.children[fieldIndex];
                     if(propertyField.tagName !== "sendtable") {
                         fields[propertyField.tagName] = propertyField.textContent;
-                    }else{
+                    } else{
                         object.hasChildTable = true;
                     }
                 }
 
+                // Parse each netprop for class
                 for(const fieldname in fields) {
                     const text = fields[fieldname];
                     switch(fieldname) {
@@ -88,12 +92,12 @@ export default function(rawXML) {
                                     }
                                 }
                                 object.fields["type"] = `${intType}${fields.bits}`
-                            }else if(text === "float") {
+                            } else if(text === "float") {
                                 if(fields.bits > 0)
                                     object.fields["type"] = `float${fields.bits}`
                                 else 
                                     object.fields["type"] = "float"
-                            }else{
+                            } else {
                                 object.fields["type"] = text;
                             }
                             break;
